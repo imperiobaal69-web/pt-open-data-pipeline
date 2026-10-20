@@ -12,7 +12,8 @@ clean-targets: ["target", "dbt_packages", "logs"]
 
 vars:
   # Months re-processed on every incremental run, so that INE revisions to
-  # recently published months replace the earlier values.
+  # recently published months replace the earlier values. Older revisions
+  # need --full-refresh.
   incremental_lookback_months: 3
 
 seeds:

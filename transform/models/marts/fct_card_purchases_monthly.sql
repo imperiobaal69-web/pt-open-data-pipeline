@@ -12,7 +12,8 @@
 -- flagged in source_issue_note (see the known_source_issues seed).
 -- Incremental: each run rebuilds only the months from the latest loaded
 -- month minus `incremental_lookback_months`, so newly published months are
--- added and recent INE revisions overwrite earlier values.
+-- added and recent INE revisions overwrite earlier values. A revision to an
+-- older month needs `dbt build --full-refresh` (the monthly workflow runs one).
 with issues as (
     select geo_code, month, string_agg(fct_column || ': ' || note, '; ' order by fct_column) as source_issue_note
     from {{ ref('known_source_issues') }}

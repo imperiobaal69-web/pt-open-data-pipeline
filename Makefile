@@ -1,6 +1,7 @@
 # pt-open-data-pipeline: one entrypoint for every step.
 #   make all                  # offline, on committed fixtures (default)
-#   make all SOURCE=live      # full refresh from the INE API
+#   make all SOURCE=live      # extract from the INE API
+#   make all FULL_REFRESH=1   # also rebuild the incremental fact model from scratch
 SOURCE ?= fixtures
 UV     ?= uv
 PTDATA  = $(UV) run ptdata --source $(SOURCE)
@@ -9,7 +10,7 @@ DATA    = data/$(SOURCE)
 .PHONY: all install extract load transform export report docs docs-serve test lint typecheck ci clean
 
 all: install
-	$(PTDATA) all
+	$(PTDATA) all $(if $(FULL_REFRESH),--full-refresh)
 
 install:
 	$(UV) sync --frozen

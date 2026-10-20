@@ -99,6 +99,22 @@ def test_revised_values_supersede_earlier_snapshot(paths, fixture_transport):
     )  # both snapshots kept in raw
 
 
+def test_revision_older_than_lookback_needs_full_refresh(paths, fixture_transport):
+    sql = "select spend_eur from marts.fct_card_purchases_monthly where geo_code = '11A1312' and month = '2025-01-01'"
+    run_pipeline(paths, fixture_transport)
+    (original,) = query(paths, sql)[0]
+
+    def revise(doc):  # INE revises January 2025, outside the 3-month lookback window
+        if doc["IndicadorCod"] == "0012848":
+            for r in doc["Dados"].get("Janeiro de 2025", []):
+                r["valor"] = str(int(r["valor"]) * 2)
+
+    run_pipeline(paths, EditingTransport(fixture_transport, revise), refresh=True)
+    assert query(paths, sql) == [(original,)]  # incremental run: the old month is not revisited
+    run_dbt(paths, "build", "--quiet", "--full-refresh")
+    assert query(paths, sql) == [(original * 2,)]
+
+
 def test_missing_month_fails_gapless_test_and_growth_stays_null(paths, fixture_transport):
     def drop_march_2025(doc):
         if doc["IndicadorCod"] in MUNICIPAL:

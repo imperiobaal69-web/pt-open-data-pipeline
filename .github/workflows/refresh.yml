@@ -29,14 +29,17 @@ jobs:
         with:
           python-version: "3.12"
           enable-cache: true
-      # Restore the previous raw layer and warehouse so that the dbt fact
-      # model runs incrementally and history is kept across runs.
+      # Restore the previous raw layer and warehouse, so every snapshot (and
+      # every revision) INE has served is kept across runs.
       - uses: actions/cache/restore@v4
         with:
           path: data/${{ env.SOURCE }}
           key: warehouse-${{ env.SOURCE }}-${{ github.run_id }}
           restore-keys: warehouse-${{ env.SOURCE }}-
-      - run: make all SOURCE=${{ env.SOURCE }}
+      # Full refresh: the incremental fact model only revisits the last
+      # `incremental_lookback_months` (3), so a revision to an older month
+      # would otherwise be missed. Rebuilding ~28k rows takes seconds.
+      - run: make all SOURCE=${{ env.SOURCE }} FULL_REFRESH=1
       - uses: actions/cache/save@v4
         if: success()
         with:
