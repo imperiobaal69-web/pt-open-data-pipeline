@@ -2,7 +2,11 @@ version: 2
 
 models:
   - name: stg_ine__series
-    description: Latest metadata per catalogued indicator, joined to the series catalog.
+    description: >
+      Latest metadata per catalogued indicator, joined to the series catalog.
+      The unit guard lives here: values are used as plain euros and counts, so
+      a change in INE's unit, scaling or precision fails the build before any
+      mart is built.
     columns:
       - name: varcd
         data_tests:
@@ -12,6 +16,39 @@ models:
               arguments:
                 to: ref('series_catalog')
                 field: varcd
+      - name: unit
+        description: INE's UnidadeMedida. Must match the catalog measure (spend_eur in euros, transactions as a count).
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: stg_ine__series_spend_unit_is_euro
+              arguments:
+                values: ["Euro (€)"]
+              config:
+                where: "measure = 'spend_eur'"
+          - accepted_values:
+              name: stg_ine__series_transactions_unit_is_count
+              arguments:
+                values: ["Número (N.º)"]
+              config:
+                where: "measure = 'transactions'"
+      - name: power_of_ten
+        description: INE's Potencia10. Values are published as value × 10^power_of_ten; only unscaled (0) series are accepted.
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: stg_ine__series_power_of_ten_is_zero
+              arguments:
+                values: [0]
+                quote: false
+      - name: decimals
+        description: INE's PrecisaoDecimal. Values are stored as DECIMAL(20,2), so more than 2 decimals would be rounded.
+        data_tests:
+          - not_null
+          - accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 2
 
   - name: stg_ine__categories
     description: Period, geography and breakdown categories from the latest metadata snapshot.

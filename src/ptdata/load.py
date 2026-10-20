@@ -85,6 +85,11 @@ class LoadSummary:
     series: int
 
 
+def _int_or_none(value: str | int | None) -> int | None:
+    """A missing scaling field stays NULL so the dbt unit guard can fail on it."""
+    return None if value is None or value == "" else int(value)
+
+
 def _utc(entry: ManifestEntry) -> str:
     """Naive UTC timestamp string, the form DuckDB's TIMESTAMP parses."""
     return entry.retrieved.astimezone(dt.UTC).strftime("%Y-%m-%d %H:%M:%S")
@@ -127,8 +132,8 @@ def load(store: RawStore, db_path: Path) -> LoadSummary:
                     "first_period_label": doc.get("PrimeiroPeriodo"),
                     "last_period_label": doc.get("UltimoPeriodo"),
                     "unit": doc.get("UnidadeMedida"),
-                    "power_of_ten": int(doc.get("Potencia10") or 0),
-                    "decimals": int(doc.get("PrecisaoDecimal") or 0),
+                    "power_of_ten": _int_or_none(doc.get("Potencia10")),
+                    "decimals": _int_or_none(doc.get("PrecisaoDecimal")),
                     "last_updated": doc.get("DataUltimaAtualizacao"),
                     "dim2_label": dims.get("2"),
                     "dim3_label": dims.get("3"),

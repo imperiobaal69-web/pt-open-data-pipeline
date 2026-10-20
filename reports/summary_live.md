@@ -24,7 +24,7 @@ Raw layer: 13 files, 50,207,833 bytes.
 |---|---|---|
 | model | success | 12 |
 | seed | success | 4 |
-| test | pass | 73 |
+| test | pass | 82 |
 
 ## Granularity by indicator (from INE metadata)
 

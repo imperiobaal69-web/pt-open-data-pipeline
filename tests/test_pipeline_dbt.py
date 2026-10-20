@@ -20,14 +20,14 @@ FACT_COLUMNS = (
 
 
 class EditingTransport:
-    """Wraps the fixture transport and rewrites data responses."""
+    """Wraps the fixture transport and rewrites data (or metadata) responses."""
 
-    def __init__(self, inner, edit):
-        self.inner, self.edit, self.name = inner, edit, inner.name
+    def __init__(self, inner, edit, endpoint=ine.DATA_ENDPOINT):
+        self.inner, self.edit, self.endpoint, self.name = inner, edit, endpoint, inner.name
 
     def get(self, url):
         body = self.inner.get(url)
-        if not url.startswith(ine.DATA_ENDPOINT):
+        if not url.startswith(self.endpoint):
             return body
         doc = ine.parse_payload(body)
         self.edit(doc)
@@ -132,3 +132,25 @@ def test_municipalities_must_add_up_to_their_region(paths, fixture_transport):
     status = {k.split(".")[2]: v for k, v in results.items() if k.startswith("test.")}
     assert status["assert_municipalities_sum_to_nuts3"] == "fail"
     assert status["assert_channel_components_sum_to_total"] == "pass"
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "failing_test"),
+    [
+        ("Potencia10", "3", "stg_ine__series_power_of_ten_is_zero"),  # values now in thousands of euros
+        ("UnidadeMedida", "Milhares de euros", "stg_ine__series_spend_unit_is_euro"),
+        ("PrecisaoDecimal", "4", "accepted_range_stg_ine__series_decimals"),
+    ],
+)
+def test_change_in_unit_or_scaling_fails_the_build(paths, fixture_transport, field, value, failing_test):
+    def rescale(meta):
+        if meta["IndicadorCod"] == "0012848":
+            meta[field] = value
+
+    with pytest.raises(SystemExit):
+        run_pipeline(paths, EditingTransport(fixture_transport, rescale, endpoint=ine.META_ENDPOINT))
+    results = dbt_results(paths)
+    failed = {k.split(".")[2] for k, v in results.items() if v == "fail"}
+    assert any(name.startswith(failing_test) for name in failed), failed
+    # Nothing downstream of the staging series is built from mis-scaled values.
+    assert results["model.pt_card_spend.fct_card_purchases_monthly"] == "skipped"
