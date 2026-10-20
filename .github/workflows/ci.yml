@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.12"
           enable-cache: true
-      # ruff, pytest (unit + end-to-end dbt tests), dbt build on fixtures,
+      # ruff, mypy, pytest (unit + end-to-end dbt tests), dbt build on fixtures,
       # Parquet export, and a diff check on the generated report and lineage.
       - run: make ci
       - uses: actions/upload-artifact@v4

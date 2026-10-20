@@ -85,9 +85,10 @@ appended to `manifest.jsonl` with URL, timestamp, checksum and size. Nothing in
 the raw layer is ever overwritten.
 
 **Load** (`src/ptdata/load.py`). Checks every checksum, then rebuilds the
-`raw.*` tables from all snapshots with explicit column types. Old snapshots are
-kept rather than replaced, so a revised value never erases the value it
-replaced.
+`raw.*` tables from all snapshots with explicit column types, in a single
+DuckDB transaction: if the load fails part-way, the previous tables are left as
+they were. Old snapshots are kept rather than replaced, so a revised value never
+erases the value it replaced.
 
 **Transform** (`transform/`). Staging picks the most recent snapshot per
 (indicator, month, geography, category) and maps INE's Portuguese period labels
@@ -108,8 +109,15 @@ Money is `DECIMAL(20,2)` in euros; shares are fractions between 0 and 1. A
 growth value is NULL when the comparison month is absent or zero, never computed
 against a different month.
 
-What the 73 dbt tests guarantee on every build:
+What the 82 dbt tests guarantee on every build:
 
+- **Units and scaling:** values are used as plain euros and counts, as INE's
+  metadata declares them (`UnidadeMedida` "Euro (€)" or "Número (N.º)",
+  `Potencia10` 0, `PrecisaoDecimal` 0). `stg_ine__series` checks that each
+  series' unit matches its catalog measure, that `power_of_ten` is 0 and that
+  `decimals` is between 0 and 2 (values are stored as `DECIMAL(20,2)`). If INE
+  starts publishing a series in thousands of euros, or changes its unit, the
+  build fails at staging and no mart is built from it.
 - **Keys:** unique and not null at each mart's grain; `relationships` from facts
   to `dim_geography`, from each unit to its parent, and from series to the
   catalog.
@@ -179,22 +187,30 @@ From the live run on 2026-10-19 ([full report](reports/summary_live.md)):
 
 | Suite | Count | Result |
 |---|---|---|
-| pytest (`make test`) | 40 | 40 passed, about 2 min (most of it the end-to-end dbt runs) |
-| dbt tests on fixtures (`make all`) | 73 | 73 passed |
-| dbt tests on live data (`make all SOURCE=live`) | 73 | 73 passed (one warn-level check, silent) |
+| pytest (`make test`) | 47 | 47 passed, about 1.5 min (most of it the end-to-end dbt runs) |
+| dbt tests on fixtures (`make all`) | 82 | 82 passed |
+| dbt tests on live data (`make all SOURCE=live`) | 82 | 82 passed (one warn-level check, silent) |
 | ruff lint + format | n/a | clean |
+| mypy `--strict` on `src/ptdata` (`make typecheck`) | n/a | no issues |
 
 The pytest suite runs offline and covers:
 
 - **Extract and raw layer:** period enumeration, chunking, retry and backoff
   (transient errors, 200-with-error-page, no retry on 4xx), and cache behaviour.
   The raw layer is checked for immutability (refuses to overwrite, detects a
-  tampered file) and dedups identical responses.
+  tampered file); an identical response is not stored again but recorded as a
+  `confirmed` retrieval of the existing file.
+- **Load:** a failure injected after two of the four `raw.*` tables have been
+  rebuilt leaves all four exactly as they were before the load.
 - **End to end (extract → load → `dbt build`):**
   - an incremental run that receives three new months produces exactly the same
     fact table as a full rebuild, and only touches the lookback window;
   - a revised value from INE supersedes the old one while both stay in the raw
     layer;
+  - a revision older than the lookback window is not picked up by an
+    incremental run, and is picked up by `--full-refresh`;
+  - a series published in thousands (`Potencia10` 3), in a different unit, or
+    with 4 decimals fails the unit guard, and the fact table is not built;
   - a missing month fails the gapless test, and the following month's growth
     stays NULL;
   - inflating one municipality fails the cross-level test while the within-table
@@ -208,24 +224,25 @@ on the numbers.
 
 - **`make all`:** one entrypoint (extract → load → dbt build → Parquet → report
   → docs). Each step is also a separate target and a `ptdata` subcommand.
-- **`.github/workflows/ci.yml`:** on push and pull request it runs ruff, pytest,
-  the full fixture pipeline and the report diff check, and uploads the Parquet
-  files and dbt docs.
+- **`.github/workflows/ci.yml`:** on push and pull request it runs ruff, mypy,
+  pytest, the full fixture pipeline and the report diff check, and uploads the
+  Parquet files and dbt docs. `make ci` runs the same steps locally.
 - **`.github/workflows/refresh.yml`:** runs monthly on the 20th (INE published
   the September 2026 data on 2026-10-15) and on demand, against the live API by
   default or fixtures if chosen. It restores the previous `data/` directory from
-  the Actions cache, so the fact model runs incrementally across months, then
-  uploads the marts as an artifact.
-
-The workflows have not run on GitHub yet: the repository has no remote. `make ci`
-runs the same steps locally and passes.
+  the Actions cache, so every snapshot INE has served is kept across months,
+  runs the pipeline with a full refresh of the fact model (see the incremental
+  trade-off below), then uploads the marts as an artifact.
 
 ## Design decisions and trade-offs
 
 - **Immutable raw layer, disposable warehouse.** Responses are stored byte for
   byte with checksums, and DuckDB is rebuilt from them. Re-running a
   transformation never needs the API, and any number can be traced to a file and
-  a URL. The cost is disk: about 50 MB per full live extract.
+  a URL. The cost is disk: about 50 MB per full live extract. A response
+  identical to the previous one for the same URL is not stored twice; the
+  manifest gets a `confirmed` record instead, so it shows when the data was last
+  re-checked, not only when it first arrived.
 - **Metadata-driven extraction.** The list of months to request comes from INE's
   own metadata, so a newly published month is picked up without code changes.
   Metadata is always re-fetched (it is what announces new months); data
@@ -234,10 +251,14 @@ runs the same steps locally and passes.
   key, but every snapshot stays in `raw.ine_observations`. Revisions are visible
   and auditable instead of overwriting history.
 - **Incremental with a lookback window.** `fct_card_purchases_monthly` uses
-  delete+insert on `(geo_code, month)` and re-processes the last 3 months on
-  every run, so recent revisions are picked up. At about 28k rows this is about
-  correctness patterns, not speed; the test above proves it is equivalent to a
-  full rebuild.
+  delete+insert on `(geo_code, month)` and re-processes the last 3 months
+  (`incremental_lookback_months`) on every run, so recent revisions are picked
+  up. A revision to an older month is not: it needs
+  `ptdata transform --full-refresh` (or `make all FULL_REFRESH=1`), and a test
+  pins that behaviour. The scheduled monthly refresh therefore always runs a
+  full refresh, which takes seconds at about 28k rows, so it never misses a
+  revision. The incremental path is what an ad-hoc `make all` uses; a test
+  proves it is equivalent to a full rebuild when no older month is revised.
 - **Growth by calendar join, not `LAG()`.** Prior periods are found by exact
   month offset. With a gap, `LAG()` would compare against the wrong month; the
   join yields NULL.
