@@ -1,0 +1,6 @@
+varcd,measure,breakdown,max_breakdown_level,description
+0012848,spend_eur,channel,,"Card purchases at POS terminals, value (EUR), by purchase channel"
+0012847,transactions,channel,,"Card purchases at POS terminals, count, by purchase channel"
+0012103,spend_eur,card_origin,,"Card purchases at POS terminals, value (EUR), by card origin"
+0014710,spend_eur,sector,2,"Card purchases at POS terminals, value (EUR), by CAE Rev.4 section"
+0014709,transactions,sector,2,"Card purchases at POS terminals, count, by CAE Rev.4 section"

@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+*.egg-info
+.venv
+.pytest_cache/
+.ruff_cache/
+
+# Pipeline outputs (raw layer, warehouse, dbt artefacts, Parquet) are
+# reproducible with `make all`; only the fixtures are committed.
+data/
+transform/target/
+transform/logs/
+transform/dbt_packages/
+logs/
+.user.yml

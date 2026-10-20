@@ -1,0 +1,425 @@
+[
+ {
+  "IndicadorCod": "0014709",
+  "IndicadorNome": "Compras através de Terminais de Pagamento Automático (N.º) por Localização geográfica (NUTS - 2024) e Atividade económica (Subclasse - CAE Rev. 4); Mensal - SIBS, Estatísticas das instituições de crédito e sociedades financeiras",
+  "Periodic": "Mensal",
+  "PrimeiroPeriodo": "Fevereiro de 2026",
+  "UltimoPeriodo": "Setembro de 2026",
+  "UnidadeMedida": "Número (N.º)",
+  "Potencia10": "0",
+  "PrecisaoDecimal": "0",
+  "Lingua": "PT",
+  "DataUltimaAtualizacao": "2026-10-15",
+  "DataExtracao": "2026-10-20T00:15:55.809+01:00",
+  "Dimensoes": {
+   "Descricao_Dim": [
+    {
+     "dim_num": "1",
+     "abrv": "Período de referência dos dados (Mês)",
+     "versao": "XXXXX"
+    },
+    {
+     "dim_num": "2",
+     "abrv": "Localização geográfica (NUTS - 2024)",
+     "versao": "05257"
+    },
+    {
+     "dim_num": "3",
+     "abrv": "Atividade económica (Subclasse - CAE Rev. 4)",
+     "versao": "05549"
+    }
+   ],
+   "Categoria_Dim": [
+    {
+     "Dim_Num1_S3A202602": [
+      {
+       "dim_num": "1",
+       "cat_id": "S3A202602",
+       "categ_cod": "S3A202602",
+       "categ_dsg": "Fevereiro de 2026",
+       "categ_ord": "20260201",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num1_S3A202603": [
+      {
+       "dim_num": "1",
+       "cat_id": "S3A202603",
+       "categ_cod": "S3A202603",
+       "categ_dsg": "Março de 2026",
+       "categ_ord": "20260301",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num1_S3A202604": [
+      {
+       "dim_num": "1",
+       "cat_id": "S3A202604",
+       "categ_cod": "S3A202604",
+       "categ_dsg": "Abril de 2026",
+       "categ_ord": "20260401",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num1_S3A202605": [
+      {
+       "dim_num": "1",
+       "cat_id": "S3A202605",
+       "categ_cod": "S3A202605",
+       "categ_dsg": "Maio de 2026",
+       "categ_ord": "20260501",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num1_S3A202606": [
+      {
+       "dim_num": "1",
+       "cat_id": "S3A202606",
+       "categ_cod": "S3A202606",
+       "categ_dsg": "Junho de 2026",
+       "categ_ord": "20260601",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num1_S3A202607": [
+      {
+       "dim_num": "1",
+       "cat_id": "S3A202607",
+       "categ_cod": "S3A202607",
+       "categ_dsg": "Julho de 2026",
+       "categ_ord": "20260701",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num1_S3A202608": [
+      {
+       "dim_num": "1",
+       "cat_id": "S3A202608",
+       "categ_cod": "S3A202608",
+       "categ_dsg": "Agosto de 2026",
+       "categ_ord": "20260801",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num1_S3A202609": [
+      {
+       "dim_num": "1",
+       "cat_id": "S3A202609",
+       "categ_cod": "S3A202609",
+       "categ_dsg": "Setembro de 2026",
+       "categ_ord": "20260901",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num2_PT": [
+      {
+       "dim_num": "2",
+       "cat_id": "PT",
+       "categ_cod": "PT",
+       "categ_dsg": "Portugal",
+       "categ_ord": "1",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num2_1": [
+      {
+       "dim_num": "2",
+       "cat_id": "1",
+       "categ_cod": "1",
+       "categ_dsg": "Continente",
+       "categ_ord": "2",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num2_11": [
+      {
+       "dim_num": "2",
+       "cat_id": "11",
+       "categ_cod": "11",
+       "categ_dsg": "Norte",
+       "categ_ord": "3",
+       "categ_nivel": "3"
+      }
+     ],
+     "Dim_Num2_11A": [
+      {
+       "dim_num": "2",
+       "cat_id": "11A",
+       "categ_cod": "11A",
+       "categ_dsg": "Área Metropolitana do Porto",
+       "categ_ord": "628",
+       "categ_nivel": "4"
+      }
+     ],
+     "Dim_Num2_2": [
+      {
+       "dim_num": "2",
+       "cat_id": "2",
+       "categ_cod": "2",
+       "categ_dsg": "Região Autónoma dos Açores",
+       "categ_ord": "3496",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num2_20": [
+      {
+       "dim_num": "2",
+       "cat_id": "20",
+       "categ_cod": "20",
+       "categ_dsg": "Região Autónoma dos Açores",
+       "categ_ord": "3497",
+       "categ_nivel": "3"
+      }
+     ],
+     "Dim_Num2_200": [
+      {
+       "dim_num": "2",
+       "cat_id": "200",
+       "categ_cod": "200",
+       "categ_dsg": "Região Autónoma dos Açores",
+       "categ_ord": "3498",
+       "categ_nivel": "4"
+      }
+     ],
+     "Dim_Num3_TOT": [
+      {
+       "dim_num": "3",
+       "cat_id": "TOT",
+       "categ_cod": "TOT",
+       "categ_dsg": "Total",
+       "categ_ord": "1",
+       "categ_nivel": "1"
+      }
+     ],
+     "Dim_Num3_A": [
+      {
+       "dim_num": "3",
+       "cat_id": "A",
+       "categ_cod": "A",
+       "categ_dsg": "Agricultura, floresta e pesca",
+       "categ_ord": "2",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_B": [
+      {
+       "dim_num": "3",
+       "cat_id": "B",
+       "categ_cod": "B",
+       "categ_dsg": "Indústrias extrativas",
+       "categ_ord": "110",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_C": [
+      {
+       "dim_num": "3",
+       "cat_id": "C",
+       "categ_cod": "C",
+       "categ_dsg": "Indústrias transformadoras",
+       "categ_ord": "161",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_D": [
+      {
+       "dim_num": "3",
+       "cat_id": "D",
+       "categ_cod": "D",
+       "categ_dsg": "Produção e distribuição de eletricidade, gás, vapor e ar condicionado",
+       "categ_ord": "843",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_E": [
+      {
+       "dim_num": "3",
+       "cat_id": "E",
+       "categ_cod": "E",
+       "categ_dsg": "Captação, tratamento e distribuição de água; saneamento, gestão de resíduos e despoluição",
+       "categ_ord": "879",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_F": [
+      {
+       "dim_num": "3",
+       "cat_id": "F",
+       "categ_cod": "F",
+       "categ_dsg": "Construção",
+       "categ_ord": "919",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_G": [
+      {
+       "dim_num": "3",
+       "cat_id": "G",
+       "categ_cod": "G",
+       "categ_dsg": "Comércio por grosso e a retalho",
+       "categ_ord": "988",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_H": [
+      {
+       "dim_num": "3",
+       "cat_id": "H",
+       "categ_cod": "H",
+       "categ_dsg": "Transportes e armazenagem",
+       "categ_ord": "1223",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_I": [
+      {
+       "dim_num": "3",
+       "cat_id": "I",
+       "categ_cod": "I",
+       "categ_dsg": "Atividades de alojamento e restauração",
+       "categ_ord": "1315",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_J": [
+      {
+       "dim_num": "3",
+       "cat_id": "J",
+       "categ_cod": "J",
+       "categ_dsg": "Atividades de edição, difusão e produção e distribuição de conteúdos",
+       "categ_ord": "1372",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_K": [
+      {
+       "dim_num": "3",
+       "cat_id": "K",
+       "categ_cod": "K",
+       "categ_dsg": "Telecomunicações, programação informática, consultoria, infraestruturas de computação e outras atividades dos serviços de informação",
+       "categ_ord": "1413",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_L": [
+      {
+       "dim_num": "3",
+       "cat_id": "L",
+       "categ_cod": "L",
+       "categ_dsg": "Atividades financeiras e de seguros",
+       "categ_ord": "1446",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_M": [
+      {
+       "dim_num": "3",
+       "cat_id": "M",
+       "categ_cod": "M",
+       "categ_dsg": "Atividades imobiliárias",
+       "categ_ord": "1505",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_N": [
+      {
+       "dim_num": "3",
+       "cat_id": "N",
+       "categ_cod": "N",
+       "categ_dsg": "Atividades de consultoria, científicas, técnicas e similares",
+       "categ_ord": "1523",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_O": [
+      {
+       "dim_num": "3",
+       "cat_id": "O",
+       "categ_cod": "O",
+       "categ_dsg": "Atividades administrativas e dos serviços de apoio",
+       "categ_ord": "1595",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_P": [
+      {
+       "dim_num": "3",
+       "cat_id": "P",
+       "categ_cod": "P",
+       "categ_dsg": "Administração pública e defesa; segurança social obrigatória",
+       "categ_ord": "1690",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_Q": [
+      {
+       "dim_num": "3",
+       "cat_id": "Q",
+       "categ_cod": "Q",
+       "categ_dsg": "Educação",
+       "categ_ord": "1719",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_R": [
+      {
+       "dim_num": "3",
+       "cat_id": "R",
+       "categ_cod": "R",
+       "categ_dsg": "Atividades de saúde humana e ação social",
+       "categ_ord": "1754",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_S": [
+      {
+       "dim_num": "3",
+       "cat_id": "S",
+       "categ_cod": "S",
+       "categ_dsg": "Atividades artísticas, desportivas e recreativas",
+       "categ_ord": "1814",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_T": [
+      {
+       "dim_num": "3",
+       "cat_id": "T",
+       "categ_cod": "T",
+       "categ_dsg": "Outras atividades de serviços",
+       "categ_ord": "1876",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_U": [
+      {
+       "dim_num": "3",
+       "cat_id": "U",
+       "categ_cod": "U",
+       "categ_dsg": "Atividades das famílias empregadoras de pessoal doméstico e atividades de produção de bens e serviços pelas famílias para uso próprio",
+       "categ_ord": "1947",
+       "categ_nivel": "2"
+      }
+     ],
+     "Dim_Num3_V": [
+      {
+       "dim_num": "3",
+       "cat_id": "V",
+       "categ_cod": "V",
+       "categ_dsg": "Atividades dos organismos internacionais e outras instituições extraterritoriais",
+       "categ_ord": "1959",
+       "categ_nivel": "2"
+      }
+     ]
+    }
+   ]
+  },
+  "Sucesso": {
+   "Verdadeiro": [
+    {
+     "Msg": "OK"
+    }
+   ]
+  }
+ }
+]
