@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import duckdb
 
@@ -19,7 +20,7 @@ MARTS = {
 
 def export_parquet(db_path: Path, out_dir: Path) -> dict[str, int]:
     out_dir.mkdir(parents=True, exist_ok=True)
-    counts = {}
+    counts: dict[str, int] = {}
     con = duckdb.connect(str(db_path), read_only=True)
     try:
         for table, order in MARTS.items():
@@ -28,7 +29,7 @@ def export_parquet(db_path: Path, out_dir: Path) -> dict[str, int]:
                 f"copy (select * from marts.{table} order by {order}) "
                 f"to '{target.as_posix()}' (format parquet, compression zstd)"
             )
-            counts[table] = con.execute(f"select count(*) from '{target.as_posix()}'").fetchone()[0]
+            counts[table] = con.execute(f"select count(*) from '{target.as_posix()}'").fetchall()[0][0]
     finally:
         con.close()
     (out_dir / "exports.json").write_text(json.dumps(counts, indent=2) + "\n", encoding="utf-8")
@@ -82,7 +83,7 @@ def write_lineage(manifest_path: Path, out_path: Path) -> None:
     )
 
 
-def _table(headers: list[str], rows: list[tuple]) -> str:
+def _table(headers: list[str], rows: list[tuple[Any, ...]]) -> str:
     def fmt(v: object) -> str:
         if v is None:
             return "–"
@@ -104,7 +105,7 @@ def pct(column: str, sign: str = "") -> str:
     return f"printf('%{sign}.1f%%', {column} * 100)"
 
 
-def _dbt_results(run_results_path: Path) -> list[tuple]:
+def _dbt_results(run_results_path: Path) -> list[tuple[str, str, int]]:
     if not run_results_path.exists():
         return []
     results = json.loads(run_results_path.read_text(encoding="utf-8"))["results"]
@@ -117,7 +118,10 @@ def _dbt_results(run_results_path: Path) -> list[tuple]:
 
 def write_summary(db_path: Path, run_results_path: Path, out_path: Path, source: str) -> str:
     con = duckdb.connect(str(db_path), read_only=True)
-    q = lambda sql: con.execute(sql).fetchall()  # noqa: E731
+
+    def q(sql: str) -> list[tuple[Any, ...]]:
+        return con.execute(sql).fetchall()
+
     try:
         raw_files, raw_bytes = q("select count(*), sum(bytes) from raw.extract_manifest")[0]
         counts = [

@@ -15,6 +15,7 @@ import json
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import duckdb
 
@@ -88,7 +89,7 @@ def _utc(entry: ManifestEntry) -> str:
 
 
 def _write_table(
-    con: duckdb.DuckDBPyConnection, table: str, columns: dict[str, str], rows: list[dict], tmp: Path
+    con: duckdb.DuckDBPyConnection, table: str, columns: dict[str, str], rows: list[dict[str, Any]], tmp: Path
 ) -> None:
     path = tmp / f"{table}.ndjson"
     with path.open("w", encoding="utf-8") as f:
@@ -103,9 +104,9 @@ def _write_table(
 
 
 def load(store: RawStore, db_path: Path) -> LoadSummary:
-    observations: list[dict] = []
-    categories: list[dict] = []
-    series: list[dict] = []
+    observations: list[dict[str, Any]] = []
+    categories: list[dict[str, Any]] = []
+    series: list[dict[str, Any]] = []
     entries = store.entries()
     # A file is referenced twice only if identical bytes were stored in the
     # same second; load it once, as its latest retrieval.

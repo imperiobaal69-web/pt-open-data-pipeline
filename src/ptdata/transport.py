@@ -16,8 +16,9 @@ import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 from urllib.parse import parse_qs, urlsplit
 
 from . import ine
@@ -36,6 +37,10 @@ class Transport(Protocol):
     def get(self, url: str) -> bytes: ...
 
 
+class Response(Protocol):
+    def read(self) -> bytes: ...
+
+
 class HttpTransport:
     name = "live"
 
@@ -46,7 +51,7 @@ class HttpTransport:
         backoff: float = 2.0,
         max_backoff: float = 60.0,
         sleep: Callable[[float], None] = time.sleep,
-        opener: Callable[..., object] = urllib.request.urlopen,
+        opener: Callable[..., AbstractContextManager[Response]] = urllib.request.urlopen,
         jitter: Callable[[], float] = random.random,
         log: Callable[[str], None] = print,
     ):
@@ -61,7 +66,7 @@ class HttpTransport:
 
     def delay(self, attempt: int) -> float:
         """Exponential backoff with up to 25% jitter: 2s, 4s, 8s, ... capped."""
-        base = min(self.max_backoff, self.backoff * 2 ** (attempt - 1))
+        base = min(self.max_backoff, self.backoff * 2.0 ** (attempt - 1))
         return base * (1 + 0.25 * self.jitter())
 
     def get(self, url: str) -> bytes:
@@ -100,13 +105,13 @@ class FixtureTransport:
         self.root = Path(root)
         self.as_of = as_of
 
-    def _read(self, name: str) -> dict:
+    def _read(self, name: str) -> dict[str, Any]:
         path = self.root / name
         if not path.exists():
             raise ExtractError(f"no fixture {path}")
         return ine.parse_payload(path.read_bytes())
 
-    def _meta(self, varcd: str) -> dict:
+    def _meta(self, varcd: str) -> dict[str, Any]:
         meta = self._read(f"meta_{varcd}.json")
         if self.as_of is None:
             return meta
@@ -139,7 +144,7 @@ class FixtureTransport:
         breakdown = {b for b in query.get("Dim3", "").split(",") if b}
 
         doc = self._read(f"data_{varcd}.json")
-        filtered = {}
+        filtered: dict[str, list[dict[str, Any]]] = {}
         for label, records in doc["Dados"].items():
             if label not in wanted_labels:
                 continue

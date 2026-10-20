@@ -20,7 +20,7 @@ from .extract import extract
 from .load import load
 from .outputs import export_parquet, write_lineage, write_summary
 from .raw import RawStore
-from .transport import FixtureTransport, HttpTransport
+from .transport import FixtureTransport, HttpTransport, Transport
 
 FIXTURES = REPO_ROOT / "tests" / "fixtures" / "ine"
 DBT_PROJECT = REPO_ROOT / "transform"
@@ -62,6 +62,7 @@ def run_dbt(paths: Paths, *args: str) -> None:
 
 
 def cmd_extract(args: argparse.Namespace, paths: Paths) -> None:
+    transport: Transport
     if args.source == "live":
         transport = HttpTransport()
     else:

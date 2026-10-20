@@ -6,7 +6,7 @@ UV     ?= uv
 PTDATA  = $(UV) run ptdata --source $(SOURCE)
 DATA    = data/$(SOURCE)
 
-.PHONY: all install extract load transform export report docs docs-serve test lint ci clean
+.PHONY: all install extract load transform export report docs docs-serve test lint typecheck ci clean
 
 all: install
 	$(PTDATA) all
@@ -43,9 +43,12 @@ lint:
 	$(UV) run ruff check .
 	$(UV) run ruff format --check .
 
-# What CI runs: lint, unit + end-to-end tests, the full fixture pipeline, and a
-# check that the generated fixture report and lineage diagram are up to date.
-ci: install lint test
+typecheck:
+	$(UV) run mypy
+
+# What CI runs: lint, strict type check, unit + end-to-end tests, the full fixture
+# pipeline, and a check that the generated fixture report and lineage diagram are up to date.
+ci: install lint typecheck test
 	$(MAKE) all SOURCE=fixtures
 	git diff --exit-code -- reports/summary_fixtures.md docs/lineage.md
 
