@@ -73,6 +73,7 @@ MANIFEST_COLUMNS = {
     "bytes": "BIGINT",
     "path": "VARCHAR",
     "transport": "VARCHAR",
+    "event": "VARCHAR",
 }
 
 
@@ -109,8 +110,8 @@ def load(store: RawStore, db_path: Path) -> LoadSummary:
     categories: list[dict[str, Any]] = []
     series: list[dict[str, Any]] = []
     entries = store.entries()
-    # A file is referenced twice only if identical bytes were stored in the
-    # same second; load it once, as its latest retrieval.
+    # A file is referenced once per retrieval that returned its bytes (stored,
+    # then any re-confirmations); load it once, stamped with its latest retrieval.
     files = list({e.path: e for e in entries}.values())
 
     for entry in files:

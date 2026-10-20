@@ -46,7 +46,24 @@ def test_second_run_serves_data_from_cache_and_rechecks_metadata(tmp_path, fixtu
     extract(store, fixture_transport, load_catalog(), **QUIET)
     again = extract(store, fixture_transport, load_catalog(), **QUIET)
     assert again.requests == 5 and again.cache_hits == 5  # 5 metadata re-checks, 5 cached data responses
-    assert len(store.entries()) == 10  # unchanged metadata is not stored again
+    # Unchanged metadata is not stored again; the re-check is recorded as a confirmation.
+    assert [e.event for e in store.entries()].count("stored") == 10
+    assert [e.event for e in store.entries()].count("confirmed") == 5
+    assert len(list(tmp_path.glob("ine/**/*.json"))) == 10
+
+
+def test_load_stamps_a_reconfirmed_file_with_its_latest_retrieval(tmp_path, fixture_transport):
+    store = RawStore(tmp_path / "raw")
+    extract(store, fixture_transport, load_catalog(), **QUIET)
+    meta = next(e for e in store.entries() if e.varcd == "0012848" and e.kind == "meta")
+    later = meta.retrieved + dt.timedelta(days=30)
+    store.put("meta", "0012848", meta.url, store.read(meta), "fixtures", now=later)
+    load(store, tmp_path / "w.duckdb")
+    con = duckdb.connect(str(tmp_path / "w.duckdb"), read_only=True)
+    rows = con.execute("select retrieved_utc, source_path from raw.ine_series where varcd = '0012848'").fetchall()
+    events = con.execute("select event, count(*) from raw.extract_manifest group by 1 order by 1").fetchall()
+    assert rows == [(later.replace(tzinfo=None), meta.path)]  # loaded once, as of the confirmation
+    assert events == [("confirmed", 1), ("stored", 10)]
 
 
 def test_new_month_in_metadata_triggers_a_new_data_request(tmp_path):

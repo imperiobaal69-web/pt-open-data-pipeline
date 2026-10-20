@@ -1,4 +1,5 @@
 import datetime as dt
+import json
 import stat
 
 import pytest
@@ -29,11 +30,25 @@ def test_never_overwrites_existing_content(tmp_path):
         store.put("data", "0012848", "other-url", b"one", "live", now=NOW)
 
 
-def test_identical_response_is_not_stored_twice(tmp_path):
+def test_identical_response_is_recorded_as_confirmed_not_stored_twice(tmp_path):
     store = RawStore(tmp_path)
     first = store.put("meta", "a", "u1", b"same", "live", now=NOW)
     again = store.put("meta", "a", "u1", b"same", "live", now=NOW + dt.timedelta(hours=1))
-    assert again == first and len(store.entries()) == 1
+    assert (again.path, again.sha256, again.bytes) == (first.path, first.sha256, first.bytes)
+    assert (first.event, again.event) == ("stored", "confirmed")
+    assert again.retrieved_utc == "2026-10-20T13:00:00+00:00"
+    assert store.entries() == [first, again]
+    assert len(list(tmp_path.glob("ine/**/*.json"))) == 1  # one file on disk
+    assert store.cached("u1", dt.timedelta(hours=2), now=NOW + dt.timedelta(hours=2, minutes=30)) == again
+    assert store.verify() == []
+
+
+def test_manifest_written_before_the_event_field_still_reads(tmp_path):
+    store = RawStore(tmp_path)
+    entry = store.put("meta", "a", "u1", b"x", "live", now=NOW)
+    legacy = {k: v for k, v in json.loads(store.manifest_path.read_text()).items() if k != "event"}
+    store.manifest_path.write_text(json.dumps(legacy) + "\n")
+    assert store.entries() == [entry]
 
 
 def test_manifest_is_append_only(tmp_path):

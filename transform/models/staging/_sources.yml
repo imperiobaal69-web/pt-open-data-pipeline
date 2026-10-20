@@ -24,4 +24,14 @@ sources:
       - name: ine_series
         description: Indicator-level metadata from each metadata snapshot.
       - name: extract_manifest
-        description: Raw-layer manifest (URL, retrieval time, SHA-256, size) for every stored response.
+        description: >
+          Raw-layer manifest (URL, retrieval time, SHA-256, size, file) for every
+          retrieval. `event` is `stored` when a new file was written and
+          `confirmed` when the same URL returned the same bytes again.
+        columns:
+          - name: event
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ["stored", "confirmed"]

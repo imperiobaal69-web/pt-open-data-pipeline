@@ -123,7 +123,7 @@ def write_summary(db_path: Path, run_results_path: Path, out_path: Path, source:
         return con.execute(sql).fetchall()
 
     try:
-        raw_files, raw_bytes = q("select count(*), sum(bytes) from raw.extract_manifest")[0]
+        raw_files, raw_bytes = q("select count(*), sum(bytes) from raw.extract_manifest where event = 'stored'")[0]
         counts = [
             ("raw.ine_observations", q("select count(*) from raw.ine_observations")[0][0]),
             ("staging.stg_ine__observations", q("select count(*) from staging.stg_ine__observations")[0][0]),

@@ -5,7 +5,9 @@ Every response is stored exactly as received under
 append-only ``manifest.jsonl`` (URL, retrieval time, SHA-256, size). Files are
 written atomically, made read-only, and never overwritten. The warehouse is
 rebuilt from this layer, so it can always be thrown away. A response that
-is byte-identical to the previous one for the same URL is not stored again.
+is byte-identical to the previous one for the same URL is not stored again;
+instead the manifest gets a ``confirmed`` record pointing at the existing
+file, so it shows every time INE served those bytes, not only the first.
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ import hashlib
 import json
 import os
 import tempfile
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 
@@ -34,6 +36,9 @@ class ManifestEntry:
     bytes: int
     path: str
     transport: str
+    # "stored": a new file was written. "confirmed": the same URL returned the
+    # same bytes again, and the record points at the file already stored.
+    event: str = "stored"
 
     @property
     def retrieved(self) -> dt.datetime:
@@ -62,7 +67,10 @@ class RawStore:
         digest = sha256_hex(body)
         previous = self.latest(url)
         if previous is not None and previous.sha256 == digest and (self.root / previous.path).exists():
-            return previous  # unchanged since the last retrieval: nothing new to store
+            # Unchanged since the last retrieval: no new file, but record when it was re-confirmed.
+            confirmed = replace(previous, retrieved_utc=now.isoformat(), transport=transport, event="confirmed")
+            self._append(confirmed)
+            return confirmed
         rel = Path("ine", varcd, kind, f"{now.strftime('%Y%m%dT%H%M%SZ')}_{digest[:12]}.json")
         path = self.root / rel
         if path.exists():
@@ -88,10 +96,13 @@ class RawStore:
             path=rel.as_posix(),
             transport=transport,
         )
+        self._append(entry)
+        return entry
+
+    def _append(self, entry: ManifestEntry) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         with self.manifest_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(asdict(entry), ensure_ascii=False) + "\n")
-        return entry
 
     def entries(self) -> list[ManifestEntry]:
         if not self.manifest_path.exists():
