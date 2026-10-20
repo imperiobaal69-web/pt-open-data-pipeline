@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      # ruff, pytest (unit + end-to-end dbt tests), dbt build on fixtures,
+      # Parquet export, and a diff check on the generated report and lineage.
+      - run: make ci
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fixture-exports
+          path: |
+            data/fixtures/exports/
+            data/fixtures/dbt_target/index.html
+            data/fixtures/dbt_target/manifest.json
+            data/fixtures/dbt_target/catalog.json

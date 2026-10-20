@@ -1,0 +1,52 @@
+name: monthly-refresh
+
+# INE publishes the SIBS card series around the middle of each month
+# (the September 2026 data was published on 2026-10-15), so run on the 20th.
+on:
+  schedule:
+    - cron: "0 6 20 * *"
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "live = INE API, fixtures = committed test data"
+        type: choice
+        options: [live, fixtures]
+        default: live
+
+concurrency:
+  group: monthly-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SOURCE: ${{ inputs.source || 'live' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      # Restore the previous raw layer and warehouse so that the dbt fact
+      # model runs incrementally and history is kept across runs.
+      - uses: actions/cache/restore@v4
+        with:
+          path: data/${{ env.SOURCE }}
+          key: warehouse-${{ env.SOURCE }}-${{ github.run_id }}
+          restore-keys: warehouse-${{ env.SOURCE }}-
+      - run: make all SOURCE=${{ env.SOURCE }}
+      - uses: actions/cache/save@v4
+        if: success()
+        with:
+          path: data/${{ env.SOURCE }}
+          key: warehouse-${{ env.SOURCE }}-${{ github.run_id }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marts-${{ env.SOURCE }}-${{ github.run_id }}
+          path: |
+            data/${{ env.SOURCE }}/exports/
+            data/${{ env.SOURCE }}/raw/manifest.jsonl
+            reports/summary_${{ env.SOURCE }}.md
+            docs/lineage.md
