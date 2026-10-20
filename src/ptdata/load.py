@@ -4,8 +4,9 @@ Responses are flattened to one row per observation / category and loaded
 with explicit column types. Every snapshot in the manifest is loaded (not
 just the newest); de-duplication to the latest value per key happens in the
 dbt staging layer, so the warehouse keeps full lineage back to the file and
-checksum each value came from. The load is a full rebuild of ``raw.*``: the
-raw layer is the source of truth and a rebuild takes seconds at this volume.
+checksum each value came from. The load is a full rebuild of ``raw.*`` in a
+single transaction: the raw layer is the source of truth, a rebuild takes
+seconds at this volume, and a failed load leaves the previous tables intact.
 """
 
 from __future__ import annotations
@@ -167,13 +168,21 @@ def load(store: RawStore, db_path: Path) -> LoadSummary:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(str(db_path))
     try:
-        con.execute("create schema if not exists raw")
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            _write_table(con, "ine_observations", OBSERVATION_COLUMNS, observations, tmp_path)
-            _write_table(con, "ine_categories", CATEGORY_COLUMNS, categories, tmp_path)
-            _write_table(con, "ine_series", SERIES_COLUMNS, series, tmp_path)
-            _write_table(con, "extract_manifest", MANIFEST_COLUMNS, manifest, tmp_path)
+        # One transaction for the whole rebuild: a failure part-way leaves the
+        # previous raw.* tables exactly as they were, never a mix of old and new.
+        con.begin()
+        try:
+            con.execute("create schema if not exists raw")
+            with tempfile.TemporaryDirectory() as tmp:
+                tmp_path = Path(tmp)
+                _write_table(con, "ine_observations", OBSERVATION_COLUMNS, observations, tmp_path)
+                _write_table(con, "ine_categories", CATEGORY_COLUMNS, categories, tmp_path)
+                _write_table(con, "ine_series", SERIES_COLUMNS, series, tmp_path)
+                _write_table(con, "extract_manifest", MANIFEST_COLUMNS, manifest, tmp_path)
+            con.commit()
+        except BaseException:
+            con.rollback()
+            raise
     finally:
         con.close()
     return LoadSummary(files=len(files), observations=len(observations), categories=len(categories), series=len(series))

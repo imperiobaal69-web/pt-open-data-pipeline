@@ -3,7 +3,9 @@ import json
 from urllib.parse import parse_qs, urlsplit
 
 import duckdb
+import pytest
 
+from ptdata import load as load_module
 from ptdata.catalog import load_catalog
 from ptdata.cli import FIXTURES
 from ptdata.extract import extract
@@ -77,3 +79,40 @@ def test_load_keeps_every_record_with_lineage(tmp_path, fixture_transport):
     ).fetchone()
     assert row == (expected, 5, True)
     assert con.execute("select count(*) from raw.extract_manifest").fetchone()[0] == 10
+
+
+def test_failed_load_leaves_previous_tables_intact(tmp_path, fixture_transport, monkeypatch):
+    store = RawStore(tmp_path / "raw")
+    db = tmp_path / "w.duckdb"
+    extract(store, FixtureTransport(FIXTURES, as_of=dt.date(2026, 6, 1)), load_catalog(), **QUIET)
+    load(store, db)
+    tables = ("ine_observations", "ine_categories", "ine_series", "extract_manifest")
+
+    def snapshot():
+        con = duckdb.connect(str(db), read_only=True)
+        try:
+            return {t: con.execute(f"select * from raw.{t} order by all").fetchall() for t in tables}
+        finally:
+            con.close()
+
+    before = snapshot()
+    extract(store, fixture_transport, load_catalog(), **QUIET)  # Jul-Sep arrive: every table would change
+
+    real_write, calls = load_module._write_table, []
+
+    def crash_on_third_table(con, table, *args):
+        calls.append(table)
+        if len(calls) == 3:
+            raise RuntimeError("simulated crash mid-load")
+        real_write(con, table, *args)
+
+    monkeypatch.setattr(load_module, "_write_table", crash_on_third_table)
+    with pytest.raises(RuntimeError, match="simulated crash"):
+        load(store, db)
+    assert calls == ["ine_observations", "ine_categories", "ine_series"]
+    assert snapshot() == before  # the two tables rebuilt before the crash were rolled back too
+
+    monkeypatch.setattr(load_module, "_write_table", real_write)
+    load(store, db)
+    after = snapshot()
+    assert all(len(after[t]) > len(before[t]) for t in ("ine_observations", "extract_manifest"))
