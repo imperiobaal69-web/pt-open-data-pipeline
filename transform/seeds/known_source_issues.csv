@@ -1,0 +1,2 @@
+geo_code,month,fct_column,published_value,expected_value,note
+1C2,2024-04-01,transactions_online,0,2553,"NUTS III Baixo Alentejo: online transactions published as 0, but in-person + online falls 2553 short of the published total and the region's 13 municipalities sum to exactly 2553."

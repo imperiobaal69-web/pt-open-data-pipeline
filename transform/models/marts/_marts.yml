@@ -1,0 +1,177 @@
+version: 2
+
+models:
+  - name: dim_geography
+    description: NUTS 2024 units and municipalities with their parent in the hierarchy.
+    columns:
+      - name: geo_code
+        description: INE geography code (NUTS 2024; 7 characters for municipalities).
+        data_tests: [unique, not_null]
+      - name: geo_level
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false
+      - name: parent_geo_code
+        description: Code of the enclosing unit; NULL only for the country.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_geography')
+                field: geo_code
+          - not_null:
+              config:
+                where: "geo_level > 1"
+
+  - name: fct_card_purchases_monthly
+    description: >
+      Card purchases at POS terminals per geography and month (country to
+      municipality). Spend and transaction totals come from the channel
+      series; card origin comes from a separate INE table with its own total.
+    columns:
+      - name: geo_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_geography')
+                field: geo_code
+      - name: month
+        data_tests:
+          - not_null
+          - gapless_monthly_series:
+              arguments:
+                partition_by: ["geo_code"]
+      - name: spend_eur
+        data_tests:
+          - not_null
+          - accepted_range:
+              arguments:
+                min_value: 0
+      - name: transactions
+        data_tests:
+          - not_null
+          - accepted_range:
+              arguments:
+                min_value: 0
+      - name: avg_ticket_eur
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: 0
+      - name: online_share
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: foreign_card_share
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["geo_code", "month"]
+
+  - name: mart_municipality_monthly
+    description: Municipality-level monthly spend, shares and MoM / YoY change (NULL when the prior period is absent).
+    columns:
+      - name: geo_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_geography')
+                field: geo_code
+      - name: nuts3_geo_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_geography')
+                field: geo_code
+      - name: month
+        data_tests:
+          - not_null
+          - gapless_monthly_series:
+              arguments:
+                partition_by: ["geo_code"]
+      - name: spend_mom_change
+        description: spend / spend of the previous calendar month - 1; NULL if that month is absent or zero.
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: -1
+      - name: spend_yoy_change
+        description: spend / spend of the same month a year earlier - 1; NULL if that month is absent or zero.
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: -1
+      - name: foreign_card_share_yoy_diff
+        description: Change in foreign-card share vs. the same month a year earlier, as a fraction (0.01 = 1 percentage point).
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: -1
+                max_value: 1
+      - name: online_share_yoy_diff
+        description: Change in online share vs. the same month a year earlier, as a fraction (0.01 = 1 percentage point).
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: -1
+                max_value: 1
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["geo_code", "month"]
+
+  - name: fct_sector_purchases_monthly
+    description: Card purchases by CAE Rev.4 section per NUTS III region (and above) and month.
+    columns:
+      - name: geo_code
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_geography')
+                field: geo_code
+      - name: month
+        data_tests:
+          - not_null
+          - gapless_monthly_series:
+              arguments:
+                partition_by: ["geo_code", "sector_code"]
+      - name: spend_eur
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: 0
+      - name: share_of_region_spend
+        data_tests:
+          - accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["geo_code", "month", "sector_code"]
+
+  - name: rpt_series_granularity
+    description: Per indicator, the finest geography, breakdown depth and period coverage published by INE, and what was loaded.
+    columns:
+      - name: varcd
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('series_catalog')
+                field: varcd

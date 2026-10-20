@@ -1,0 +1,27 @@
+nuts3_geo_code,nuts3_name,municipalities
+111,"Alto Minho",10
+112,"Cávado",6
+119,"Ave",8
+11A,"Área Metropolitana do Porto",17
+11B,"Alto Tâmega e Barroso",6
+11C,"Tâmega e Sousa",11
+11D,"Douro",19
+11E,"Terras de Trás-os-Montes",9
+150,"Algarve",16
+191,"Região de Aveiro",11
+192,"Região de Coimbra",19
+193,"Região de Leiria",10
+194,"Viseu Dão Lafões",14
+195,"Beira Baixa",8
+196,"Beiras e Serra da Estrela",15
+1A0,"Grande Lisboa",9
+1B0,"Península de Setúbal",9
+1C1,"Alentejo Litoral",5
+1C2,"Baixo Alentejo",13
+1C3,"Alto Alentejo",15
+1C4,"Alentejo Central",14
+1D1,"Oeste",12
+1D2,"Médio Tejo",11
+1D3,"Lezíria do Tejo",11
+200,"Região Autónoma dos Açores",19
+300,"Região Autónoma da Madeira",11

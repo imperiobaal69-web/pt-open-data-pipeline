@@ -1,0 +1,52 @@
+name: pt_card_spend
+version: "0.1.0"
+config-version: 2
+profile: pt_card_spend
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages", "logs"]
+
+vars:
+  # Months re-processed on every incremental run, so that INE revisions to
+  # recently published months replace the earlier values.
+  incremental_lookback_months: 3
+
+seeds:
+  pt_card_spend:
+    +schema: reference
+    series_catalog:
+      +column_types:
+        varcd: varchar
+        measure: varchar
+        breakdown: varchar
+        max_breakdown_level: integer
+        description: varchar
+    known_source_issues:
+      +column_types:
+        geo_code: varchar
+        month: date
+        fct_column: varchar
+        published_value: decimal(20, 2)
+        expected_value: decimal(20, 2)
+        note: varchar
+    nuts3_municipality_counts:
+      +column_types:
+        nuts3_geo_code: varchar
+        nuts3_name: varchar
+        municipalities: integer
+
+models:
+  pt_card_spend:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table

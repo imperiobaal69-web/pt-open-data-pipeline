@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: ine
+    description: >
+      INE (Statistics Portugal) JSON indicator API, loaded by `ptdata load`
+      from the immutable raw layer. Every snapshot is kept; staging selects
+      the latest value per key. Licence: CC BY 4.0 (source: INE / SIBS).
+    schema: raw
+    tables:
+      - name: ine_observations
+        description: One row per (snapshot, series, period, geography, breakdown category) as received.
+        columns:
+          - name: varcd
+            data_tests: [not_null]
+          - name: period_label
+            data_tests: [not_null]
+          - name: geo_code
+            data_tests: [not_null]
+          - name: retrieved_utc
+            data_tests: [not_null]
+      - name: ine_categories
+        description: Dimension categories from each metadata snapshot (dim 1 = period, 2 = geography, 3 = breakdown).
+      - name: ine_series
+        description: Indicator-level metadata from each metadata snapshot.
+      - name: extract_manifest
+        description: Raw-layer manifest (URL, retrieval time, SHA-256, size) for every stored response.

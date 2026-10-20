@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: stg_ine__series
+    description: Latest metadata per catalogued indicator, joined to the series catalog.
+    columns:
+      - name: varcd
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('series_catalog')
+                field: varcd
+
+  - name: stg_ine__categories
+    description: Period, geography and breakdown categories from the latest metadata snapshot.
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["varcd", "dim_num", "category_code"]
+
+  - name: stg_ine__periods
+    columns:
+      - name: month
+        data_tests: [not_null]
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["varcd", "month"]
+
+  - name: stg_ine__observations
+    description: Latest value per (indicator, month, geography, breakdown category).
+    columns:
+      - name: varcd
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ine__series')
+                field: varcd
+      - name: month
+        description: NULL would mean a period label that is not in the indicator's metadata.
+        data_tests: [not_null]
+      - name: geo_code
+        data_tests: [not_null]
+      - name: breakdown_code
+        data_tests: [not_null]
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["varcd", "month", "geo_code", "breakdown_code"]

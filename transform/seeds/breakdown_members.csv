@@ -1,0 +1,7 @@
+breakdown,breakdown_code,member
+channel,T,total
+channel,1,in_person
+channel,2,online
+card_origin,T,total
+card_origin,1,domestic
+card_origin,2,foreign

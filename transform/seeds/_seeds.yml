@@ -1,0 +1,60 @@
+version: 2
+
+seeds:
+  - name: series_catalog
+    description: >
+      The INE indicators this pipeline extracts. Read by the Python extractor
+      and by dbt, so both sides share one definition.
+    columns:
+      - name: varcd
+        description: INE indicator code.
+        data_tests: [unique, not_null]
+      - name: measure
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["spend_eur", "transactions"]
+      - name: breakdown
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["channel", "card_origin", "sector"]
+      - name: max_breakdown_level
+        description: If set, only breakdown categories down to this hierarchy level are requested (CAE has 1,963 categories).
+
+  - name: breakdown_members
+    description: Meaning of INE's breakdown category codes for the channel and card-origin series.
+    columns:
+      - name: breakdown_code
+        data_tests: [not_null]
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["breakdown", "breakdown_code"]
+
+  - name: nuts3_municipality_counts
+    description: >
+      Municipalities per NUTS III region in INE's NUTS 2024 geography (26
+      regions, 308 municipalities), taken from the indicators' metadata. Used
+      to run the cross-level additivity test only where every municipality
+      of a region is loaded.
+    columns:
+      - name: nuts3_geo_code
+        data_tests: [unique, not_null]
+
+  - name: known_source_issues
+    description: >
+      Published INE values that are known to be inconsistent. They are kept
+      as published (not corrected), flagged in the fact table, and excluded
+      from the consistency tests so that any new inconsistency still fails.
+    columns:
+      - name: fct_column
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["spend_eur", "spend_in_person_eur", "spend_online_eur", "spend_domestic_cards_eur",
+                         "spend_foreign_cards_eur", "transactions", "transactions_in_person", "transactions_online"]
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["geo_code", "month", "fct_column"]

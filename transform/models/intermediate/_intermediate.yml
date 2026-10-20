@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int_observations__labelled
+    columns:
+      - name: member
+        description: Meaning of the breakdown code. Every channel / card-origin code must be mapped.
+        data_tests:
+          - not_null:
+              config:
+                where: "breakdown in ('channel', 'card_origin')"
+
+  - name: int_card_purchases__pivoted
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["geo_code", "month"]
+
+  - name: int_sector_purchases__pivoted
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: ["geo_code", "month", "sector_code"]

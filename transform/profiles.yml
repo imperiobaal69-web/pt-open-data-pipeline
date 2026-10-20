@@ -1,0 +1,7 @@
+pt_card_spend:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "{{ env_var('PTDATA_DUCKDB', '../data/fixtures/warehouse.duckdb') }}"
+      threads: 4
