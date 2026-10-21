@@ -24,7 +24,7 @@ from urllib.parse import parse_qs, urlsplit
 from . import ine
 
 RETRYABLE_HTTP = {408, 425, 429, 500, 502, 503, 504}
-USER_AGENT = "pt-open-data-pipeline/0.1 (+https://github.com/imperiobaal69-web)"
+USER_AGENT = "pt-open-data-pipeline/0.1 (+https://github.com/paulovillalobos)"
 
 
 class ExtractError(Exception):

@@ -3,7 +3,7 @@ name = "pt-open-data-pipeline"
 version = "0.1.0"
 description = "Reproducible ELT pipeline for Portuguese card-spend open data (INE / SIBS) with DuckDB and dbt."
 authors = [
-    { name = "Paulo", email = "imperiobaal69-web@users.noreply.github.com" }
+    { name = "Paulo", email = "paulovillalobos@users.noreply.github.com" }
 ]
 readme = "README.md"
 license = "MIT"

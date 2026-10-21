@@ -1,6 +1,6 @@
 # pt-open-data-pipeline
 
-[![CI](https://github.com/imperiobaal69-web/pt-open-data-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/imperiobaal69-web/pt-open-data-pipeline/actions/workflows/ci.yml)
+[![CI](https://github.com/paulovillalobos/pt-open-data-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/paulovillalobos/pt-open-data-pipeline/actions/workflows/ci.yml)
 
 A reproducible ELT pipeline over Portuguese open data: monthly card spending at
 point-of-sale terminals, published by INE (Statistics Portugal) from SIBS
@@ -36,7 +36,7 @@ enforced as tests.
 ## Run it (3 commands)
 
 ```bash
-git clone https://github.com/imperiobaal69-web/pt-open-data-pipeline.git && cd pt-open-data-pipeline
+git clone https://github.com/paulovillalobos/pt-open-data-pipeline.git && cd pt-open-data-pipeline
 brew install uv            # or: curl -LsSf https://astral.sh/uv/install.sh | sh
 make all                   # offline: fixtures -> DuckDB -> dbt build -> Parquet
 ```
